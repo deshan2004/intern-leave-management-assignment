@@ -7,11 +7,27 @@ import { employeeService, leaveService } from './services/api';
 import { Loader2, RefreshCw } from 'lucide-react';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('admin');
+  const getInitialTab = () => {
+    const params = new URLSearchParams(window.location.search);
+    const tabParam = params.get('tab');
+    if (tabParam && ['admin', 'apply', 'employees'].includes(tabParam)) {
+      return tabParam;
+    }
+    return 'admin';
+  };
+
+  const [activeTab, setActiveTabState] = useState(getInitialTab);
   const [employees, setEmployees] = useState([]);
   const [leaves, setLeaves] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  const setActiveTab = (tab) => {
+    setActiveTabState(tab);
+    const url = new URL(window.location.href);
+    url.searchParams.set('tab', tab);
+    window.history.pushState({}, '', url);
+  };
 
   const fetchData = useCallback(async () => {
     try {

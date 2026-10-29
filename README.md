@@ -19,6 +19,22 @@ A full-stack, enterprise-grade web application designed for managing employee le
 
 ---
 
+## 📸 Application Screenshots
+
+### 1. Administrator Dashboard & Approvals
+Overview metrics, pending review queue, quick approvals, and status filters.
+![Admin Dashboard](docs/screenshots/admin-dashboard.png)
+
+### 2. Leave Application Form
+Interactive leave application with real-time date duration calculation and date range error prevention.
+![Apply for Leave](docs/screenshots/apply-leave.png)
+
+### 3. Employee Roster & Registration
+Employee creation form with instant email validation and department tagging alongside real-time directory.
+![Employee Management](docs/screenshots/employees.png)
+
+---
+
 ## 🏛️ System Architecture
 
 The application adopts a clean **Layered Architecture (Tiered Architecture)** ensuring complete separation of concerns:
