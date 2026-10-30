@@ -25,35 +25,24 @@ public class AuthController {
         String email = request.getEmail().trim().toLowerCase();
         String password = request.getPassword().trim();
 
-        // 1. Admin login credentials
-        if (email.equals("admin@omibits.com") || email.equals("admin")) {
-            if (!password.equals("admin123") && !password.equals("admin")) {
-                throw new InvalidOperationException("Invalid password for administrator account.");
-            }
-            return ResponseEntity.ok(new AuthResponse(
-                    0L,
-                    "System Administrator",
-                    "admin@omibits.com",
-                    "Operations & Management",
-                    "ADMIN"
-            ));
-        }
-
-        // 2. Employee login: match against database record
+        // 100% Database-Driven Authentication (Zero hardcoded credentials in source code)
         Employee employee = employeeRepository.findByEmail(email)
-                .orElseThrow(() -> new InvalidOperationException("No employee account registered with email: " + email));
+                .orElseThrow(() -> new InvalidOperationException("Invalid corporate email or password."));
 
         if (!password.equals(employee.getPassword())) {
-            throw new InvalidOperationException("Invalid password. Please check your credentials.");
+            throw new InvalidOperationException("Invalid corporate email or password.");
         }
+
+        String role = (employee.getRole() != null && !employee.getRole().trim().isEmpty())
+                ? employee.getRole().trim().toUpperCase()
+                : "EMPLOYEE";
 
         return ResponseEntity.ok(new AuthResponse(
                 employee.getId(),
                 employee.getName(),
                 employee.getEmail(),
                 employee.getDepartment(),
-                "EMPLOYEE"
+                role
         ));
     }
 }
-

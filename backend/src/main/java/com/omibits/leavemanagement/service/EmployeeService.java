@@ -46,6 +46,7 @@ public class EmployeeService {
     @Transactional(readOnly = true)
     public List<EmployeeResponse> getAllEmployees() {
         return employeeRepository.findAll().stream()
+                .filter(emp -> !"ADMIN".equalsIgnoreCase(emp.getRole()))
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }

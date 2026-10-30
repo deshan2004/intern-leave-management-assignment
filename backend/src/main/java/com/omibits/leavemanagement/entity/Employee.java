@@ -25,6 +25,9 @@ public class Employee {
     @Column(nullable = false, length = 100)
     private String password;
 
+    @Column(nullable = false, length = 20)
+    private String role = "EMPLOYEE";
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -35,14 +38,19 @@ public class Employee {
     }
 
     public Employee(String name, String email, String department, String password) {
+        this(name, email, department, password, "EMPLOYEE");
+    }
+
+    public Employee(String name, String email, String department, String password, String role) {
         this.name = name;
         this.email = email;
         this.department = department;
         this.password = password != null ? password : "password123";
+        this.role = (role != null && !role.trim().isEmpty()) ? role.trim().toUpperCase() : "EMPLOYEE";
     }
 
     public Employee(String name, String email, String department) {
-        this(name, email, department, "password123");
+        this(name, email, department, "password123", "EMPLOYEE");
     }
 
     @PrePersist
@@ -50,6 +58,9 @@ public class Employee {
         this.createdAt = LocalDateTime.now();
         if (this.password == null || this.password.trim().isEmpty()) {
             this.password = "password123";
+        }
+        if (this.role == null || this.role.trim().isEmpty()) {
+            this.role = "EMPLOYEE";
         }
     }
 
@@ -91,6 +102,14 @@ public class Employee {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = (role != null && !role.trim().isEmpty()) ? role.trim().toUpperCase() : "EMPLOYEE";
     }
 
     public LocalDateTime getCreatedAt() {

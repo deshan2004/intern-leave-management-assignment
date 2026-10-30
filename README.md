@@ -22,7 +22,7 @@ A full-stack, enterprise-grade web application designed for managing employee le
 ## 📸 Application Screenshots
 
 ### 1. Workspace Sign-In
-Interactive corporate login supporting Administrator privileges (`admin@omibits.com` / `admin123`) and Employee credentials.
+Interactive corporate login supporting Administrator privileges and Employee credentials directly authenticated against the database.
 ![Sign In Screen](docs/screenshots/login-screen.png)
 
 ### 2. Administrator Dashboard & Approvals
@@ -74,6 +74,7 @@ erDiagram
         VARCHAR email "NOT NULL, UNIQUE"
         VARCHAR department "NOT NULL (5 Departments)"
         VARCHAR password "NOT NULL"
+        VARCHAR role "NOT NULL (ADMIN, EMPLOYEE)"
         TIMESTAMP created_at "NOT NULL"
     }
     LEAVE_REQUEST {
@@ -126,7 +127,7 @@ curl -X POST http://localhost:8080/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "admin@omibits.com",
-    "password": "admin"
+    "password": "<admin_password>"
   }'
 ```
 
@@ -138,7 +139,7 @@ curl -X POST http://localhost:8080/api/employees \
     "name": "Kamal Wickramasinghe",
     "email": "kamal@omibits.com",
     "department": "Engineering",
-    "password": "password123"
+    "password": "<employee_initial_password>"
   }'
 ```
 
@@ -225,7 +226,7 @@ Create a PostgreSQL database named `leave_management_db`:
 ```sql
 CREATE DATABASE leave_management_db;
 ```
-Configure your credentials in `backend/src/main/resources/application.properties` (Default: user `postgres`, password `postgres`, port `5432`). You can view live data with **TablePlus**.
+Configure your database connection in `backend/src/main/resources/application.properties` (or via environment variables). You can inspect and verify tables with **TablePlus**.
 
 ### 3. Run Backend (Spring Boot)
 ```bash
@@ -243,6 +244,7 @@ npm run dev
 ```
 - Open browser at: **`http://localhost:5173`**
 
-### 5. Default Credentials
-- **System Administrator:** `admin@omibits.com` / `admin123`
-- **Employee:** Any registered employee email & password (created via Admin Employee Directory).
+### 5. Authentication & Role Separation
+- **Database-Driven Role Management:** All user identities, credentials, and access roles (`ADMIN` vs `EMPLOYEE`) are authenticated directly against the PostgreSQL `employees` table.
+- **Administrator Role:** The system automatically initializes the administrative user in the database upon startup if not already seeded, keeping all operational secrets out of source code.
+- **Employee Credentials:** Additional employee accounts and passwords are created dynamically by the Administrator via the Employee Directory.
