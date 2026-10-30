@@ -7,6 +7,7 @@ import com.omibits.leavemanagement.exception.InvalidOperationException;
 import com.omibits.leavemanagement.repository.EmployeeRepository;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -15,9 +16,11 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final EmployeeRepository employeeRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public AuthController(EmployeeRepository employeeRepository) {
+    public AuthController(EmployeeRepository employeeRepository, PasswordEncoder passwordEncoder) {
         this.employeeRepository = employeeRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @PostMapping("/login")
@@ -25,11 +28,26 @@ public class AuthController {
         String email = request.getEmail().trim().toLowerCase();
         String password = request.getPassword().trim();
 
-        // 100% Database-Driven Authentication (Zero hardcoded credentials in source code)
+        // 100% Database-Driven Authentication using BCrypt Password Hashing
         Employee employee = employeeRepository.findByEmail(email)
                 .orElseThrow(() -> new InvalidOperationException("Invalid corporate email or password."));
 
-        if (!password.equals(employee.getPassword())) {
+        String storedPassword = employee.getPassword();
+        boolean passwordMatches = false;
+
+        if (storedPassword != null && (storedPassword.startsWith("$2a$") || storedPassword.startsWith("$2b$") || storedPassword.startsWith("$2y$"))) {
+            // Standard BCrypt Hash verification
+            passwordMatches = passwordEncoder.matches(password, storedPassword);
+        } else if (storedPassword != null) {
+            // Graceful migration fallback: upgrade plain-text to BCrypt upon successful verification
+            passwordMatches = password.equals(storedPassword);
+            if (passwordMatches) {
+                employee.setPassword(passwordEncoder.encode(password));
+                employeeRepository.save(employee);
+            }
+        }
+
+        if (!passwordMatches) {
             throw new InvalidOperationException("Invalid corporate email or password.");
         }
 

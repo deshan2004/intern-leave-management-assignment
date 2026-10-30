@@ -12,6 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
 
@@ -24,6 +25,9 @@ class EmployeeServiceTest {
 
     @Mock
     private EmployeeRepository employeeRepository;
+
+    @Mock
+    private PasswordEncoder passwordEncoder;
 
     @InjectMocks
     private EmployeeService employeeService;
@@ -39,6 +43,7 @@ class EmployeeServiceTest {
     @DisplayName("Should create employee successfully when email is unique")
     void shouldCreateEmployeeSuccessfully() {
         when(employeeRepository.existsByEmail("kasun@omibits.com")).thenReturn(false);
+        when(passwordEncoder.encode(any())).thenReturn("$2a$10$hashedpassword");
 
         Employee savedEmployee = new Employee("Kasun Perera", "kasun@omibits.com", "Engineering");
         savedEmployee.setId(1L);

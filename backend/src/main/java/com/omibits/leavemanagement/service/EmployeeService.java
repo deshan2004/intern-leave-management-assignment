@@ -6,6 +6,7 @@ import com.omibits.leavemanagement.entity.Employee;
 import com.omibits.leavemanagement.exception.InvalidOperationException;
 import com.omibits.leavemanagement.exception.ResourceNotFoundException;
 import com.omibits.leavemanagement.repository.EmployeeRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,9 +18,11 @@ import java.util.stream.Collectors;
 public class EmployeeService {
 
     private final EmployeeRepository employeeRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public EmployeeService(EmployeeRepository employeeRepository) {
+    public EmployeeService(EmployeeRepository employeeRepository, PasswordEncoder passwordEncoder) {
         this.employeeRepository = employeeRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public EmployeeResponse createEmployee(EmployeeRequest request) {
@@ -36,7 +39,8 @@ public class EmployeeService {
                 request.getName().trim(),
                 trimmedEmail,
                 request.getDepartment().trim(),
-                rawPassword
+                passwordEncoder.encode(rawPassword),
+                "EMPLOYEE"
         );
 
         Employee saved = employeeRepository.save(employee);
@@ -77,7 +81,7 @@ public class EmployeeService {
         employee.setDepartment(request.getDepartment().trim());
 
         if (request.getPassword() != null && !request.getPassword().trim().isEmpty()) {
-            employee.setPassword(request.getPassword().trim());
+            employee.setPassword(passwordEncoder.encode(request.getPassword().trim()));
         }
 
         Employee updated = employeeRepository.save(employee);

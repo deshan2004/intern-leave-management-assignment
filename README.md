@@ -15,6 +15,7 @@ A full-stack, enterprise-grade web application designed for managing employee le
 | **Backend** | Java 21, Spring Boot 3.3.5 | Industry standard for enterprise REST APIs, strong type safety, Spring Data JPA, Jakarta Bean Validation. |
 | **Frontend** | React 18, Vite, Tailwind CSS, Lucide Icons, Axios | Fast reactive Single Page Application (SPA), ultra-modern Glassmorphism UI, client-side validation. |
 | **Database** | PostgreSQL 16 (Relational RDBMS) | Relational integrity with foreign key cascading and check constraints (`leave_management_db`). |
+| **Security** | BCrypt (Spring Security Crypto) | Salted, adaptive cryptographic password hashing for all user records in the database. |
 | **Testing** | JUnit 5, Mockito | High code quality and coverage for critical business rules and state machines (9/9 tests passing). |
 
 ---
@@ -246,5 +247,6 @@ npm run dev
 
 ### 5. Authentication & Role Separation
 - **Database-Driven Role Management:** All user identities, credentials, and access roles (`ADMIN` vs `EMPLOYEE`) are authenticated directly against the PostgreSQL `employees` table.
-- **Administrator Role:** The system automatically initializes the administrative user in the database upon startup if not already seeded, keeping all operational secrets out of source code.
-- **Employee Credentials:** Additional employee accounts and passwords are created dynamically by the Administrator via the Employee Directory.
+- **BCrypt Password Hashing:** All passwords are cryptographically hashed using salted BCrypt before storage in PostgreSQL, ensuring zero plain-text passwords exist anywhere in the persistence layer.
+- **Administrator Role:** The system automatically initializes the administrative user in the database upon startup with a BCrypt hash if not already seeded, keeping all operational secrets out of source code.
+- **Employee Credentials:** Additional employee accounts and passwords are created dynamically by the Administrator via the Employee Directory with interactive show/hide password controls.

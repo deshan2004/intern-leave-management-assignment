@@ -12,6 +12,8 @@ import {
   Check,
   Save,
   Filter,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import { employeeService } from '../services/api';
 
@@ -28,6 +30,8 @@ export default function EmployeeSection({ employees, onEmployeeAdded, showToast 
   const [email, setEmail] = useState('');
   const [department, setDepartment] = useState('Engineering');
   const [password, setPassword] = useState('password123');
+  const [showAddPassword, setShowAddPassword] = useState(false);
+  const [showEditPassword, setShowEditPassword] = useState(false);
   const [search, setSearch] = useState('');
   const [deptFilter, setDeptFilter] = useState('ALL');
   const [submitting, setSubmitting] = useState(false);
@@ -256,13 +260,26 @@ export default function EmployeeSection({ employees, onEmployeeAdded, showToast 
               <div className="relative">
                 <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
                 <input
-                  type="text"
+                  type={showAddPassword ? 'text' : 'password'}
                   placeholder="e.g. password123"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 text-xs bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-slate-800 transition font-mono"
+                  className="w-full pl-9 pr-10 py-2 text-xs bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-slate-800 transition font-mono"
                   required
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowAddPassword(!showAddPassword)}
+                  className="absolute right-3 top-2 text-slate-400 hover:text-slate-600 transition p-0.5 rounded-lg focus:outline-none"
+                  title={showAddPassword ? 'Hide password' : 'Show password'}
+                  aria-label={showAddPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showAddPassword ? (
+                    <EyeOff className="w-3.5 h-3.5 text-slate-600" />
+                  ) : (
+                    <Eye className="w-3.5 h-3.5 text-slate-400" />
+                  )}
+                </button>
               </div>
             </div>
 
@@ -461,13 +478,28 @@ export default function EmployeeSection({ employees, onEmployeeAdded, showToast 
                   </label>
                   <span className="text-[10px] text-slate-400">Leave blank to keep unchanged</span>
                 </div>
-                <input
-                  type="text"
-                  placeholder="Enter new password to change..."
-                  value={editPassword}
-                  onChange={(e) => setEditPassword(e.target.value)}
-                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none text-slate-800 transition font-mono"
-                />
+                <div className="relative">
+                  <input
+                    type={showEditPassword ? 'text' : 'password'}
+                    placeholder="Enter new password to change..."
+                    value={editPassword}
+                    onChange={(e) => setEditPassword(e.target.value)}
+                    className="w-full pl-3 pr-10 py-2 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none text-slate-800 transition font-mono"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowEditPassword(!showEditPassword)}
+                    className="absolute right-3 top-2 text-slate-400 hover:text-slate-600 transition p-0.5 rounded-lg focus:outline-none"
+                    title={showEditPassword ? 'Hide password' : 'Show password'}
+                    aria-label={showEditPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showEditPassword ? (
+                      <EyeOff className="w-3.5 h-3.5 text-slate-600" />
+                    ) : (
+                      <Eye className="w-3.5 h-3.5 text-slate-400" />
+                    )}
+                  </button>
+                </div>
               </div>
 
               <div className="flex items-center justify-end space-x-2 pt-3 border-t border-slate-100">

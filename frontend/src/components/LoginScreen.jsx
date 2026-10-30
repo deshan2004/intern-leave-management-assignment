@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { CalendarCheck, Lock, Mail, ArrowRight, AlertCircle, Sparkles } from 'lucide-react';
+import { CalendarCheck, Lock, Mail, ArrowRight, AlertCircle, Sparkles, Eye, EyeOff } from 'lucide-react';
 import { authService } from '../services/api';
 
 export default function LoginScreen({ onLogin, showToast }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -103,16 +104,29 @@ export default function LoginScreen({ onLogin, showToast }) {
               <div className="relative">
                 <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
                 <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => {
                     setPassword(e.target.value);
                     if (errorMessage) setErrorMessage('');
                   }}
                   placeholder="••••••••"
-                  className="w-full pl-9 pr-3 py-2.5 text-xs glass-input rounded-xl outline-none font-medium text-slate-800 transition"
+                  className="w-full pl-9 pr-10 py-2.5 text-xs glass-input rounded-xl outline-none font-medium text-slate-800 transition"
                   required
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 transition p-0.5 rounded-lg focus:outline-none"
+                  title={showPassword ? 'Hide password' : 'Show password'}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4 text-slate-600" />
+                  ) : (
+                    <Eye className="w-4 h-4 text-slate-400" />
+                  )}
+                </button>
               </div>
             </div>
 
