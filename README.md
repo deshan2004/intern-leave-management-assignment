@@ -169,6 +169,20 @@ cd backend
 
 ---
 
+## 🌿 Git Workflow & Branching Strategy
+
+The repository follows a clean, feature-driven branching model adhering to industry Git Flow standards:
+
+| Branch | Purpose / Scope |
+| :--- | :--- |
+| `main` | Production-ready stable release containing all integrated features, documentation, and tests. |
+| `feature/backend-api-architecture` | Spring Boot 3 REST APIs, Layered Architecture, DTOs, Bean Validation, and JUnit 5 unit tests. |
+| `feature/frontend-react-ui` | React 18 SPA with Tailwind CSS, Admin Dashboard, Leave Submissions, and responsive roster view. |
+| `feature/database-postgres-schema` | PostgreSQL relational schema (`database/schema.sql`), check constraints, and Docker Compose configuration. |
+| `feature/role-based-auth` | Corporate Sign-In, Role-Based Access Control (Admin vs. Employee), and user session management. |
+
+---
+
 ## 💻 Local Setup & Execution Guide
 
 ### Prerequisites
