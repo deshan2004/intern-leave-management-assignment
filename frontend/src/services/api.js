@@ -23,6 +23,14 @@ export const employeeService = {
     const res = await api.post('/employees', employeeData);
     return res.data;
   },
+  update: async (id, employeeData) => {
+    const res = await api.put(`/employees/${id}`, employeeData);
+    return res.data;
+  },
+  delete: async (id) => {
+    const res = await api.delete(`/employees/${id}`);
+    return res.data;
+  },
 };
 
 export const leaveService = {
@@ -32,6 +40,14 @@ export const leaveService = {
   },
   submit: async (leaveData) => {
     const res = await api.post('/leaves', leaveData);
+    return res.data;
+  },
+  update: async (id, leaveData) => {
+    const res = await api.put(`/leaves/${id}`, leaveData);
+    return res.data;
+  },
+  delete: async (id) => {
+    const res = await api.delete(`/leaves/${id}`);
     return res.data;
   },
   approve: async (id) => {

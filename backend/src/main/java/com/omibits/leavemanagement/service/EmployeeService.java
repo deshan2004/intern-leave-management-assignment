@@ -62,6 +62,32 @@ public class EmployeeService {
         return mapToResponse(employee);
     }
 
+    public EmployeeResponse updateEmployee(Long id, EmployeeRequest request) {
+        Employee employee = getEmployeeEntityById(id);
+        String trimmedEmail = request.getEmail().trim().toLowerCase();
+
+        // Check if email changed and if the new email is already used by another employee
+        if (!employee.getEmail().equalsIgnoreCase(trimmedEmail) && employeeRepository.existsByEmail(trimmedEmail)) {
+            throw new InvalidOperationException("An employee with email '" + trimmedEmail + "' already exists");
+        }
+
+        employee.setName(request.getName().trim());
+        employee.setEmail(trimmedEmail);
+        employee.setDepartment(request.getDepartment().trim());
+
+        if (request.getPassword() != null && !request.getPassword().trim().isEmpty()) {
+            employee.setPassword(request.getPassword().trim());
+        }
+
+        Employee updated = employeeRepository.save(employee);
+        return mapToResponse(updated);
+    }
+
+    public void deleteEmployee(Long id) {
+        Employee employee = getEmployeeEntityById(id);
+        employeeRepository.delete(employee);
+    }
+
     private EmployeeResponse mapToResponse(Employee employee) {
         return new EmployeeResponse(
                 employee.getId(),

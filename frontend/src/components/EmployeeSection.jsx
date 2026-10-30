@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { UserPlus, Users, Mail, Building, Search, Lock } from 'lucide-react';
+import { UserPlus, Users, Mail, Building, Search, Lock, Pencil, Trash2, X, Check, Save } from 'lucide-react';
 import { employeeService } from '../services/api';
 
 export default function EmployeeSection({ employees, onEmployeeAdded, showToast }) {
@@ -9,6 +9,15 @@ export default function EmployeeSection({ employees, onEmployeeAdded, showToast 
   const [password, setPassword] = useState('password123');
   const [search, setSearch] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  // Edit State
+  const [editingEmployee, setEditingEmployee] = useState(null);
+  const [editName, setEditName] = useState('');
+  const [editEmail, setEditEmail] = useState('');
+  const [editDepartment, setEditDepartment] = useState('Engineering');
+  const [editPassword, setEditPassword] = useState('');
+  const [updating, setUpdating] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
 
   const validateEmail = (val) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
@@ -54,6 +63,73 @@ export default function EmployeeSection({ employees, onEmployeeAdded, showToast 
     }
   };
 
+  const handleStartEdit = (emp) => {
+    setEditingEmployee(emp);
+    setEditName(emp.name);
+    setEditEmail(emp.email);
+    setEditDepartment(emp.department);
+    setEditPassword('');
+  };
+
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+
+    if (!editName.trim()) {
+      showToast({ type: 'error', title: 'Validation Error', message: 'Employee name is required.' });
+      return;
+    }
+    if (!editEmail.trim() || !validateEmail(editEmail.trim())) {
+      showToast({ type: 'error', title: 'Invalid Email', message: 'A valid email address is required.' });
+      return;
+    }
+
+    try {
+      setUpdating(true);
+      await employeeService.update(editingEmployee.id, {
+        name: editName.trim(),
+        email: editEmail.trim().toLowerCase(),
+        department: editDepartment.trim(),
+        password: editPassword.trim() || undefined,
+      });
+
+      showToast({
+        type: 'success',
+        title: 'Employee Updated',
+        message: `${editName.trim()}'s profile was updated successfully.`,
+      });
+
+      setEditingEmployee(null);
+      onEmployeeAdded();
+    } catch (err) {
+      const msg = err.response?.data?.message || err.response?.data?.details?.[0] || 'Failed to update employee.';
+      showToast({ type: 'error', title: 'Update Failed', message: msg });
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const handleDelete = async (emp) => {
+    if (!window.confirm(`Are you sure you want to remove ${emp.name}? Any associated leave records will also be removed.`)) {
+      return;
+    }
+
+    try {
+      setDeletingId(emp.id);
+      await employeeService.delete(emp.id);
+      showToast({
+        type: 'success',
+        title: 'Employee Removed',
+        message: `${emp.name} has been removed from the directory.`,
+      });
+      onEmployeeAdded();
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Failed to delete employee.';
+      showToast({ type: 'error', title: 'Delete Failed', message: msg });
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   const filteredEmployees = employees.filter((emp) =>
     emp.name.toLowerCase().includes(search.toLowerCase()) ||
     emp.email.toLowerCase().includes(search.toLowerCase()) ||
@@ -65,7 +141,7 @@ export default function EmployeeSection({ employees, onEmployeeAdded, showToast 
       <div>
         <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">Employee Directory</h2>
         <p className="text-xs text-slate-500 mt-1">
-          Register new personnel, set initial login passwords, and oversee the company roster.
+          Register new personnel, edit records, manage credentials, and oversee the company roster.
         </p>
       </div>
 
@@ -123,13 +199,13 @@ export default function EmployeeSection({ employees, onEmployeeAdded, showToast 
                 <select
                   value={department}
                   onChange={(e) => setDepartment(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 text-xs bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-slate-800 font-medium transition"
+                  className="w-full pl-9 pr-3 py-2 text-xs bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-slate-800 transition cursor-pointer"
                 >
                   <option value="Engineering">Engineering</option>
-                  <option value="Product Design">Product Design</option>
-                  <option value="Quality Assurance">Quality Assurance</option>
                   <option value="Human Resources">Human Resources</option>
                   <option value="Finance & Operations">Finance & Operations</option>
+                  <option value="Marketing">Marketing</option>
+                  <option value="Product Design">Product Design</option>
                 </select>
               </div>
             </div>
@@ -195,12 +271,13 @@ export default function EmployeeSection({ employees, onEmployeeAdded, showToast 
                   <th className="py-3 px-3">Employee</th>
                   <th className="py-3 px-3">Department</th>
                   <th className="py-3 px-3">Joined Date</th>
+                  <th className="py-3 px-3 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-700">
                 {filteredEmployees.length === 0 ? (
                   <tr>
-                    <td colSpan="3" className="py-12 text-center text-slate-400">
+                    <td colSpan="4" className="py-12 text-center text-slate-400">
                       No employees registered yet. Add the first employee using the form.
                     </td>
                   </tr>
@@ -231,6 +308,25 @@ export default function EmployeeSection({ employees, onEmployeeAdded, showToast 
                       <td className="py-3 px-3 text-xs text-slate-500 font-medium">
                         {emp.createdAt ? new Date(emp.createdAt).toLocaleDateString() : 'N/A'}
                       </td>
+                      <td className="py-3 px-3 text-right">
+                        <div className="flex items-center justify-end space-x-1">
+                          <button
+                            onClick={() => handleStartEdit(emp)}
+                            title="Edit Employee"
+                            className="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(emp)}
+                            disabled={deletingId === emp.id}
+                            title="Delete Employee"
+                            className="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition disabled:opacity-50"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </td>
                     </tr>
                   ))
                 )}
@@ -239,6 +335,107 @@ export default function EmployeeSection({ employees, onEmployeeAdded, showToast 
           </div>
         </div>
       </div>
+
+      {/* Edit Employee Modal */}
+      {editingEmployee && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-md w-full p-6 space-y-5 animate-scale-in">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center space-x-2">
+                <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                  <Pencil className="w-4 h-4" />
+                </div>
+                <h3 className="font-bold text-slate-900 text-sm">Edit Employee Profile</h3>
+              </div>
+              <button
+                onClick={() => setEditingEmployee(null)}
+                className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleUpdate} className="space-y-4">
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none text-slate-800 transition"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                  Corporate Email
+                </label>
+                <input
+                  type="email"
+                  value={editEmail}
+                  onChange={(e) => setEditEmail(e.target.value)}
+                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none text-slate-800 transition"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                  Department
+                </label>
+                <select
+                  value={editDepartment}
+                  onChange={(e) => setEditDepartment(e.target.value)}
+                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none text-slate-800 transition cursor-pointer"
+                >
+                  <option value="Engineering">Engineering</option>
+                  <option value="Human Resources">Human Resources</option>
+                  <option value="Finance & Operations">Finance & Operations</option>
+                  <option value="Marketing">Marketing</option>
+                  <option value="Product Design">Product Design</option>
+                </select>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                    New Password
+                  </label>
+                  <span className="text-[10px] text-slate-400">Leave blank to keep unchanged</span>
+                </div>
+                <input
+                  type="text"
+                  placeholder="Enter new password to change..."
+                  value={editPassword}
+                  onChange={(e) => setEditPassword(e.target.value)}
+                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none text-slate-800 transition font-mono"
+                />
+              </div>
+
+              <div className="flex items-center justify-end space-x-2 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setEditingEmployee(null)}
+                  className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={updating}
+                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-md shadow-indigo-600/20 transition flex items-center space-x-1.5 disabled:opacity-50"
+                >
+                  <Save className="w-3.5 h-3.5" />
+                  <span>{updating ? 'Saving...' : 'Save Changes'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

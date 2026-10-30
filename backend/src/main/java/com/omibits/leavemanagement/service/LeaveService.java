@@ -98,6 +98,36 @@ public class LeaveService {
         return mapToResponse(updated);
     }
 
+    public LeaveApplicationResponse updateLeaveRequest(Long id, LeaveApplicationRequest request) {
+        LeaveRequest leaveRequest = findLeaveById(id);
+
+        if (leaveRequest.getStatus() != LeaveStatus.PENDING) {
+            throw new InvalidOperationException(
+                    "Only PENDING leave requests can be edited. Current status: " + leaveRequest.getStatus()
+            );
+        }
+
+        validateDateRange(request.getStartDate(), request.getEndDate());
+
+        leaveRequest.setLeaveType(request.getLeaveType());
+        leaveRequest.setStartDate(request.getStartDate());
+        leaveRequest.setEndDate(request.getEndDate());
+        leaveRequest.setReason(request.getReason() != null ? request.getReason().trim() : null);
+
+        LeaveRequest updated = leaveRequestRepository.save(leaveRequest);
+        return mapToResponse(updated);
+    }
+
+    public void deleteLeaveRequest(Long id) {
+        LeaveRequest leaveRequest = findLeaveById(id);
+        if (leaveRequest.getStatus() != LeaveStatus.PENDING) {
+            throw new InvalidOperationException(
+                    "Only PENDING leave requests can be cancelled. Current status: " + leaveRequest.getStatus()
+            );
+        }
+        leaveRequestRepository.delete(leaveRequest);
+    }
+
     private void validateDateRange(LocalDate startDate, LocalDate endDate) {
         if (startDate == null || endDate == null) {
             throw new InvalidOperationException("Start date and end date must both be provided.");

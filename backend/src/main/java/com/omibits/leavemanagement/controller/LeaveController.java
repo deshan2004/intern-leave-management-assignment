@@ -53,5 +53,19 @@ public class LeaveController {
         LeaveApplicationResponse response = leaveService.rejectLeaveRequest(id, request);
         return ResponseEntity.ok(response);
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<LeaveApplicationResponse> updateLeaveRequest(
+            @PathVariable Long id,
+            @Valid @RequestBody LeaveApplicationRequest request) {
+        LeaveApplicationResponse response = leaveService.updateLeaveRequest(id, request);
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteLeaveRequest(@PathVariable Long id) {
+        leaveService.deleteLeaveRequest(id);
+        return ResponseEntity.noContent().build();
+    }
 }
 
