@@ -22,6 +22,10 @@ public class LeaveApplicationRequest {
     @Size(max = 500, message = "Reason cannot exceed 500 characters")
     private String reason;
 
+    private String attachmentName;
+    private String attachmentType;
+    private String attachmentData;
+
     public LeaveApplicationRequest() {
     }
 
@@ -71,6 +75,30 @@ public class LeaveApplicationRequest {
 
     public void setReason(String reason) {
         this.reason = reason;
+    }
+
+    public String getAttachmentName() {
+        return attachmentName;
+    }
+
+    public void setAttachmentName(String attachmentName) {
+        this.attachmentName = attachmentName;
+    }
+
+    public String getAttachmentType() {
+        return attachmentType;
+    }
+
+    public void setAttachmentType(String attachmentType) {
+        this.attachmentType = attachmentType;
+    }
+
+    public String getAttachmentData() {
+        return attachmentData;
+    }
+
+    public void setAttachmentData(String attachmentData) {
+        this.attachmentData = attachmentData;
     }
 }
 

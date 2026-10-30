@@ -13,14 +13,17 @@ import {
   Inbox,
   UserCheck,
   ArrowRight,
+  Paperclip,
 } from 'lucide-react';
 import { leaveService } from '../services/api';
 import RejectModal from './RejectModal';
+import DocumentModal from './DocumentModal';
 
 export default function AdminDashboard({ leaves, onActionCompleted, showToast }) {
   const [filter, setFilter] = useState('ALL');
   const [searchTerm, setSearchTerm] = useState('');
   const [rejectingItem, setRejectingItem] = useState(null);
+  const [viewingDocument, setViewingDocument] = useState(null);
   const [loadingId, setLoadingId] = useState(null);
 
   const pendingCount = leaves.filter((l) => l.status === 'PENDING').length;
@@ -214,6 +217,28 @@ export default function AdminDashboard({ leaves, onActionCompleted, showToast })
                       <div className="text-slate-700 truncate" title={item.reason}>
                         {item.reason || <span className="text-slate-400 italic">No reason provided</span>}
                       </div>
+
+                      {item.attachmentName ? (
+                        <div className="mt-1.5">
+                          <button
+                            type="button"
+                            onClick={() => setViewingDocument(item)}
+                            className="inline-flex items-center space-x-1 px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200/80 rounded-lg text-[11px] font-semibold transition"
+                            title="Click to view attached document"
+                          >
+                            <Paperclip className="w-3 h-3 text-indigo-500" />
+                            <span className="truncate max-w-[120px]">{item.attachmentName}</span>
+                            <span className="text-[9px] bg-indigo-200/70 text-indigo-800 px-1 py-0.2 rounded font-bold ml-1">
+                              View
+                            </span>
+                          </button>
+                        </div>
+                      ) : item.leaveType === 'MEDICAL' ? (
+                        <div className="mt-1 text-[10px] text-amber-600 font-medium">
+                          ⚠️ No medical slip attached
+                        </div>
+                      ) : null}
+
                       {item.rejectionReason && (
                         <div className="mt-1.5 text-rose-700 bg-rose-50 p-2 rounded-lg border border-rose-200/60 flex items-start space-x-1.5 text-[11px] leading-tight">
                           <MessageSquare className="w-3.5 h-3.5 flex-shrink-0 mt-0.5 text-rose-500" />
@@ -264,6 +289,16 @@ export default function AdminDashboard({ leaves, onActionCompleted, showToast })
         leaveRequest={rejectingItem}
         onClose={() => setRejectingItem(null)}
         onConfirm={handleRejectConfirm}
+      />
+
+      {/* Document Preview Modal */}
+      <DocumentModal
+        isOpen={!!viewingDocument}
+        leaveRequest={viewingDocument}
+        onClose={() => setViewingDocument(null)}
+        onApprove={handleApprove}
+        onReject={(item) => setRejectingItem(item)}
+        isAdmin={true}
       />
     </div>
   );

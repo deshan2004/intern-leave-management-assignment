@@ -43,6 +43,12 @@ public class LeaveService {
                 request.getReason() != null ? request.getReason().trim() : null
         );
 
+        if (request.getAttachmentName() != null && !request.getAttachmentName().trim().isEmpty()) {
+            leaveRequest.setAttachmentName(request.getAttachmentName().trim());
+            leaveRequest.setAttachmentType(request.getAttachmentType());
+            leaveRequest.setAttachmentData(request.getAttachmentData());
+        }
+
         LeaveRequest saved = leaveRequestRepository.save(leaveRequest);
         return mapToResponse(saved);
     }
@@ -114,6 +120,12 @@ public class LeaveService {
         leaveRequest.setEndDate(request.getEndDate());
         leaveRequest.setReason(request.getReason() != null ? request.getReason().trim() : null);
 
+        if (request.getAttachmentName() != null) {
+            leaveRequest.setAttachmentName(request.getAttachmentName().trim().isEmpty() ? null : request.getAttachmentName().trim());
+            leaveRequest.setAttachmentType(request.getAttachmentType());
+            leaveRequest.setAttachmentData(request.getAttachmentData());
+        }
+
         LeaveRequest updated = leaveRequestRepository.save(leaveRequest);
         return mapToResponse(updated);
     }
@@ -145,7 +157,7 @@ public class LeaveService {
     }
 
     private LeaveApplicationResponse mapToResponse(LeaveRequest leave) {
-        return new LeaveApplicationResponse(
+        LeaveApplicationResponse response = new LeaveApplicationResponse(
                 leave.getId(),
                 leave.getEmployee().getId(),
                 leave.getEmployee().getName(),
@@ -159,6 +171,10 @@ public class LeaveService {
                 leave.getRejectionReason(),
                 leave.getCreatedAt()
         );
+        response.setAttachmentName(leave.getAttachmentName());
+        response.setAttachmentType(leave.getAttachmentType());
+        response.setAttachmentData(leave.getAttachmentData());
+        return response;
     }
 }
 

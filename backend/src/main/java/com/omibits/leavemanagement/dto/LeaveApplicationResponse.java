@@ -18,6 +18,9 @@ public class LeaveApplicationResponse {
     private String reason;
     private LeaveStatus status;
     private String rejectionReason;
+    private String attachmentName;
+    private String attachmentType;
+    private String attachmentData;
     private LocalDateTime createdAt;
 
     public LeaveApplicationResponse() {
@@ -131,6 +134,30 @@ public class LeaveApplicationResponse {
 
     public void setRejectionReason(String rejectionReason) {
         this.rejectionReason = rejectionReason;
+    }
+
+    public String getAttachmentName() {
+        return attachmentName;
+    }
+
+    public void setAttachmentName(String attachmentName) {
+        this.attachmentName = attachmentName;
+    }
+
+    public String getAttachmentType() {
+        return attachmentType;
+    }
+
+    public void setAttachmentType(String attachmentType) {
+        this.attachmentType = attachmentType;
+    }
+
+    public String getAttachmentData() {
+        return attachmentData;
+    }
+
+    public void setAttachmentData(String attachmentData) {
+        this.attachmentData = attachmentData;
     }
 
     public LocalDateTime getCreatedAt() {

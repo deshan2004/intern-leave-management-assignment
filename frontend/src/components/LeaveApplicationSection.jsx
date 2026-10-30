@@ -15,8 +15,11 @@ import {
   X,
   Save,
   Lock,
+  UploadCloud,
+  Paperclip,
 } from 'lucide-react';
 import { leaveService } from '../services/api';
+import DocumentModal from './DocumentModal';
 
 export default function LeaveApplicationSection({ employees, leaves, onLeaveSubmitted, showToast, currentUser }) {
   const isEmployee = currentUser?.role === 'EMPLOYEE';
@@ -27,6 +30,10 @@ export default function LeaveApplicationSection({ employees, leaves, onLeaveSubm
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [reason, setReason] = useState('');
+  const [attachmentName, setAttachmentName] = useState('');
+  const [attachmentType, setAttachmentType] = useState('');
+  const [attachmentData, setAttachmentData] = useState('');
+  const [fileSizeError, setFileSizeError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   // Edit Leave State
@@ -35,8 +42,14 @@ export default function LeaveApplicationSection({ employees, leaves, onLeaveSubm
   const [editStartDate, setEditStartDate] = useState('');
   const [editEndDate, setEditEndDate] = useState('');
   const [editReason, setEditReason] = useState('');
+  const [editAttachmentName, setEditAttachmentName] = useState('');
+  const [editAttachmentType, setEditAttachmentType] = useState('');
+  const [editAttachmentData, setEditAttachmentData] = useState('');
   const [updatingLeave, setUpdatingLeave] = useState(false);
   const [cancellingId, setCancellingId] = useState(null);
+
+  // Document Viewer Modal
+  const [viewingDocument, setViewingDocument] = useState(null);
 
   useEffect(() => {
     if (isEmployee && currentUser?.id) {
@@ -56,6 +69,50 @@ export default function LeaveApplicationSection({ employees, leaves, onLeaveSubm
 
   const daysCount = calculateDays(startDate, endDate);
   const editDaysCount = calculateDays(editStartDate, editEndDate);
+
+  const handleFileChange = (e) => {
+    setFileSizeError('');
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      setFileSizeError('File size exceeds 5MB limit. Please select a smaller file.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setAttachmentName(file.name);
+      setAttachmentType(file.type || 'application/octet-stream');
+      setAttachmentData(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveAttachment = () => {
+    setAttachmentName('');
+    setAttachmentType('');
+    setAttachmentData('');
+    setFileSizeError('');
+  };
+
+  const handleEditFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      showToast({ type: 'error', title: 'File Too Large', message: 'Maximum file size is 5MB.' });
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setEditAttachmentName(file.name);
+      setEditAttachmentType(file.type || 'application/octet-stream');
+      setEditAttachmentData(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -87,6 +144,9 @@ export default function LeaveApplicationSection({ employees, leaves, onLeaveSubm
         startDate,
         endDate,
         reason: reason.trim(),
+        attachmentName: attachmentName.trim() || undefined,
+        attachmentType: attachmentType || undefined,
+        attachmentData: attachmentData || undefined,
       });
 
       showToast({
@@ -99,6 +159,7 @@ export default function LeaveApplicationSection({ employees, leaves, onLeaveSubm
       setReason('');
       setStartDate('');
       setEndDate('');
+      handleRemoveAttachment();
       onLeaveSubmitted();
     } catch (err) {
       const msg = err.response?.data?.message || err.response?.data?.details?.[0] || 'Failed to submit leave request.';
@@ -114,6 +175,9 @@ export default function LeaveApplicationSection({ employees, leaves, onLeaveSubm
     setEditStartDate(leave.startDate);
     setEditEndDate(leave.endDate);
     setEditReason(leave.reason || '');
+    setEditAttachmentName(leave.attachmentName || '');
+    setEditAttachmentType(leave.attachmentType || '');
+    setEditAttachmentData(leave.attachmentData || '');
   };
 
   const handleUpdateLeave = async (e) => {
@@ -135,6 +199,9 @@ export default function LeaveApplicationSection({ employees, leaves, onLeaveSubm
         startDate: editStartDate,
         endDate: editEndDate,
         reason: editReason.trim(),
+        attachmentName: editAttachmentName.trim() || undefined,
+        attachmentType: editAttachmentType || undefined,
+        attachmentData: editAttachmentData || undefined,
       });
 
       showToast({
@@ -187,7 +254,7 @@ export default function LeaveApplicationSection({ employees, leaves, onLeaveSubm
         </h2>
         <p className="text-xs text-slate-500 mt-1">
           {isEmployee
-            ? `Logged in as ${currentUser?.name}. Submit new requests or edit pending submissions below.`
+            ? `Logged in as ${currentUser?.name}. Submit new requests, attach proof, or edit pending submissions.`
             : 'Submit leave requests for employees and review live submission history.'}
         </p>
       </div>
@@ -339,6 +406,55 @@ export default function LeaveApplicationSection({ employees, leaves, onLeaveSubm
               />
             </div>
 
+            {/* Supporting Document / Proof Attachment */}
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                  Supporting Document / Proof
+                </label>
+                <span className="text-[10px] text-slate-400 font-medium">Optional (Max 5MB)</span>
+              </div>
+
+              {leaveType === 'MEDICAL' && (
+                <div className="mb-2 p-2 bg-amber-50 border border-amber-200/80 rounded-xl text-[11px] text-amber-800 flex items-center space-x-1.5">
+                  <Paperclip className="w-3.5 h-3.5 flex-shrink-0 text-amber-600" />
+                  <span>Medical certificate or prescription recommended for medical leave.</span>
+                </div>
+              )}
+
+              {attachmentName ? (
+                <div className="flex items-center justify-between p-2.5 bg-indigo-50/70 border border-indigo-200 rounded-xl text-xs">
+                  <div className="flex items-center space-x-2 truncate">
+                    <Paperclip className="w-4 h-4 text-indigo-600 flex-shrink-0" />
+                    <span className="font-semibold text-indigo-950 truncate">{attachmentName}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleRemoveAttachment}
+                    className="text-slate-400 hover:text-rose-600 p-1 rounded-lg transition"
+                    title="Remove file"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ) : (
+                <label className="border-2 border-dashed border-slate-300 hover:border-indigo-400 rounded-2xl p-3 flex flex-col items-center justify-center cursor-pointer transition bg-slate-50/50 hover:bg-indigo-50/30 group">
+                  <UploadCloud className="w-5 h-5 text-slate-400 group-hover:text-indigo-600 transition mb-1" />
+                  <span className="text-xs font-semibold text-slate-600 group-hover:text-indigo-600 transition">
+                    Click to attach document or medical proof
+                  </span>
+                  <span className="text-[10px] text-slate-400 mt-0.5">PDF, PNG, JPG up to 5MB</span>
+                  <input
+                    type="file"
+                    accept=".pdf,.png,.jpg,.jpeg,.webp"
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                </label>
+              )}
+              {fileSizeError && <p className="text-[11px] text-rose-600 font-medium mt-1">{fileSizeError}</p>}
+            </div>
+
             <button
               type="submit"
               disabled={submitting || daysCount === -1}
@@ -371,7 +487,7 @@ export default function LeaveApplicationSection({ employees, leaves, onLeaveSubm
                   <th className="py-3 px-3">Employee</th>
                   <th className="py-3 px-3">Type</th>
                   <th className="py-3 px-3">Duration</th>
-                  <th className="py-3 px-3">Reason & Notes</th>
+                  <th className="py-3 px-3">Reason & Proof</th>
                   <th className="py-3 px-3">Status</th>
                   <th className="py-3 px-3 text-right">Actions</th>
                 </tr>
@@ -406,6 +522,21 @@ export default function LeaveApplicationSection({ employees, leaves, onLeaveSubm
                       </td>
                       <td className="py-3.5 px-3 text-xs text-slate-500 max-w-xs">
                         <div className="truncate">{item.reason || <span className="text-slate-300 italic">—</span>}</div>
+                        
+                        {item.attachmentName && (
+                          <div className="mt-1">
+                            <button
+                              type="button"
+                              onClick={() => setViewingDocument(item)}
+                              className="inline-flex items-center space-x-1 px-2 py-0.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200/80 rounded-md text-[10px] font-semibold transition"
+                            >
+                              <Paperclip className="w-3 h-3 text-indigo-500" />
+                              <span className="truncate max-w-[100px]">{item.attachmentName}</span>
+                              <span className="text-[9px] text-indigo-700 font-bold ml-1">View</span>
+                            </button>
+                          </div>
+                        )}
+
                         {item.rejectionReason && (
                           <div className="mt-1 text-[11px] text-rose-600 bg-rose-50 px-2 py-1 rounded border border-rose-100">
                             <strong>Note:</strong> {item.rejectionReason}
@@ -553,6 +684,42 @@ export default function LeaveApplicationSection({ employees, leaves, onLeaveSubm
                 />
               </div>
 
+              {/* Edit Attachment */}
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                  Attachment / Proof
+                </label>
+                {editAttachmentName ? (
+                  <div className="flex items-center justify-between p-2 bg-indigo-50 border border-indigo-200 rounded-xl text-xs">
+                    <span className="font-semibold text-indigo-950 truncate max-w-[200px]">
+                      {editAttachmentName}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditAttachmentName('');
+                        setEditAttachmentType('');
+                        setEditAttachmentData('');
+                      }}
+                      className="text-slate-400 hover:text-rose-600 p-1"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ) : (
+                  <label className="border border-dashed border-slate-300 hover:border-indigo-400 rounded-xl p-2.5 flex items-center justify-center space-x-1.5 cursor-pointer bg-slate-50 text-xs text-slate-600 transition">
+                    <UploadCloud className="w-4 h-4 text-slate-400" />
+                    <span>Upload new file</span>
+                    <input
+                      type="file"
+                      accept=".pdf,.png,.jpg,.jpeg,.webp"
+                      onChange={handleEditFileChange}
+                      className="hidden"
+                    />
+                  </label>
+                )}
+              </div>
+
               <div className="flex items-center justify-end space-x-2 pt-3 border-t border-slate-100">
                 <button
                   type="button"
@@ -574,6 +741,14 @@ export default function LeaveApplicationSection({ employees, leaves, onLeaveSubm
           </div>
         </div>
       )}
+
+      {/* Document Viewer Modal for Employee */}
+      <DocumentModal
+        isOpen={!!viewingDocument}
+        leaveRequest={viewingDocument}
+        onClose={() => setViewingDocument(null)}
+        isAdmin={false}
+      />
     </div>
   );
 }
