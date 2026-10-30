@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { CalendarCheck, Lock, Mail, ArrowRight, AlertCircle } from 'lucide-react';
+import { authService } from '../services/api';
 
-export default function LoginScreen({ employees, onLogin, showToast }) {
+export default function LoginScreen({ onLogin, showToast }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setErrorMessage('');
     const cleanEmail = email.trim().toLowerCase();
@@ -22,51 +23,27 @@ export default function LoginScreen({ employees, onLogin, showToast }) {
       return;
     }
 
-    setSubmitting(true);
-
-    // 1. Check if Administrator
-    if (cleanEmail === 'admin@omibits.com' || cleanEmail === 'admin') {
-      const adminUser = {
-        id: 0,
-        name: 'System Administrator',
-        email: 'admin@omibits.com',
-        role: 'ADMIN',
-        department: 'Operations & Management',
-      };
-      onLogin(adminUser);
+    try {
+      setSubmitting(true);
+      // Validate credentials directly against backend PostgreSQL database API
+      const authUser = await authService.login(cleanEmail, password.trim());
+      onLogin(authUser);
       showToast({
         type: 'success',
-        title: 'Signed in as Administrator',
-        message: 'Welcome back! You have full access to reviews and approvals.',
+        title: authUser.role === 'ADMIN' ? 'Signed in as Administrator' : `Welcome, ${authUser.name}`,
+        message:
+          authUser.role === 'ADMIN'
+            ? 'Administrator privileges active.'
+            : `Signed in to employee workspace (${authUser.department}).`,
       });
+    } catch (err) {
+      const msg =
+        err.response?.data?.message ||
+        'Authentication failed. Invalid email or password.';
+      setErrorMessage(msg);
+    } finally {
       setSubmitting(false);
-      return;
     }
-
-    // 2. Query against real Database Employees
-    const matchedEmployee = employees.find(
-      (emp) => emp.email.toLowerCase() === cleanEmail
-    );
-
-    if (matchedEmployee) {
-      const empUser = {
-        ...matchedEmployee,
-        role: 'EMPLOYEE',
-      };
-      onLogin(empUser);
-      showToast({
-        type: 'success',
-        title: `Welcome, ${matchedEmployee.name}`,
-        message: `Signed in to employee workspace (${matchedEmployee.department}).`,
-      });
-    } else {
-      // Email not found in Database
-      setErrorMessage(
-        `Invalid credentials. No active employee account found for "${cleanEmail}".`
-      );
-    }
-
-    setSubmitting(false);
   };
 
   return (

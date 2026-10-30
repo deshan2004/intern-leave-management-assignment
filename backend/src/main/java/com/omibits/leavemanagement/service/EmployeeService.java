@@ -28,10 +28,15 @@ public class EmployeeService {
             throw new InvalidOperationException("An employee with email '" + trimmedEmail + "' already exists");
         }
 
+        String rawPassword = (request.getPassword() != null && !request.getPassword().trim().isEmpty())
+                ? request.getPassword().trim()
+                : "password123";
+
         Employee employee = new Employee(
                 request.getName().trim(),
                 trimmedEmail,
-                request.getDepartment().trim()
+                request.getDepartment().trim(),
+                rawPassword
         );
 
         Employee saved = employeeRepository.save(employee);

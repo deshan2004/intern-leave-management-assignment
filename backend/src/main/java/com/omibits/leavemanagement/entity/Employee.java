@@ -22,6 +22,9 @@ public class Employee {
     @Column(nullable = false, length = 50)
     private String department;
 
+    @Column(nullable = false, length = 100)
+    private String password;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -31,15 +34,23 @@ public class Employee {
     public Employee() {
     }
 
-    public Employee(String name, String email, String department) {
+    public Employee(String name, String email, String department, String password) {
         this.name = name;
         this.email = email;
         this.department = department;
+        this.password = password != null ? password : "password123";
+    }
+
+    public Employee(String name, String email, String department) {
+        this(name, email, department, "password123");
     }
 
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
+        if (this.password == null || this.password.trim().isEmpty()) {
+            this.password = "password123";
+        }
     }
 
     public Long getId() {
@@ -74,6 +85,14 @@ public class Employee {
         this.department = department;
     }
 
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -90,4 +109,3 @@ public class Employee {
         this.leaveRequests = leaveRequests;
     }
 }
-

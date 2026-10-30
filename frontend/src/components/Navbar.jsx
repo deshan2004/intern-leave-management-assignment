@@ -6,7 +6,6 @@ export default function Navbar({ activeTab, setActiveTab, pendingCount, currentU
 
   const adminTabs = [
     { id: 'admin', label: 'Admin Approvals', icon: Shield, badge: pendingCount },
-    { id: 'apply', label: 'Submit Leave', icon: Send },
     { id: 'employees', label: 'Employees', icon: Users },
   ];
 

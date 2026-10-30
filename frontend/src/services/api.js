@@ -7,6 +7,13 @@ const api = axios.create({
   },
 });
 
+export const authService = {
+  login: async (email, password) => {
+    const res = await api.post('/auth/login', { email, password });
+    return res.data;
+  },
+};
+
 export const employeeService = {
   getAll: async () => {
     const res = await api.get('/employees');
@@ -38,4 +45,3 @@ export const leaveService = {
 };
 
 export default api;
-

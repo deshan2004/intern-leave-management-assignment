@@ -18,6 +18,8 @@ public class EmployeeRequest {
     @Size(min = 2, max = 50, message = "Department must be between 2 and 50 characters")
     private String department;
 
+    private String password;
+
     public EmployeeRequest() {
     }
 
@@ -25,6 +27,13 @@ public class EmployeeRequest {
         this.name = name;
         this.email = email;
         this.department = department;
+    }
+
+    public EmployeeRequest(String name, String email, String department, String password) {
+        this.name = name;
+        this.email = email;
+        this.department = department;
+        this.password = password;
     }
 
     public String getName() {
@@ -50,5 +59,12 @@ public class EmployeeRequest {
     public void setDepartment(String department) {
         this.department = department;
     }
-}
 
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+}

@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { UserPlus, Users, Mail, Building, Search, UserCheck } from 'lucide-react';
+import { UserPlus, Users, Mail, Building, Search, Lock } from 'lucide-react';
 import { employeeService } from '../services/api';
 
 export default function EmployeeSection({ employees, onEmployeeAdded, showToast }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [department, setDepartment] = useState('Engineering');
+  const [password, setPassword] = useState('password123');
   const [search, setSearch] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -31,16 +32,18 @@ export default function EmployeeSection({ employees, onEmployeeAdded, showToast 
         name: name.trim(),
         email: email.trim().toLowerCase(),
         department: department.trim(),
+        password: password.trim() || 'password123',
       });
 
       showToast({
         type: 'success',
         title: 'Employee Registered!',
-        message: `${name.trim()} was successfully registered into the ${department} department.`,
+        message: `${name.trim()} was successfully registered with initial password.`,
       });
 
       setName('');
       setEmail('');
+      setPassword('password123');
       setDepartment('Engineering');
       onEmployeeAdded();
     } catch (err) {
@@ -62,7 +65,7 @@ export default function EmployeeSection({ employees, onEmployeeAdded, showToast 
       <div>
         <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">Employee Directory</h2>
         <p className="text-xs text-slate-500 mt-1">
-          Register new personnel and oversee the company roster.
+          Register new personnel, set initial login passwords, and oversee the company roster.
         </p>
       </div>
 
@@ -75,7 +78,7 @@ export default function EmployeeSection({ employees, onEmployeeAdded, showToast 
             </div>
             <div>
               <h3 className="font-bold text-sm text-slate-900">Add New Personnel</h3>
-              <p className="text-[11px] text-slate-400 font-medium">Create staff profile</p>
+              <p className="text-[11px] text-slate-400 font-medium">Create staff profile & credentials</p>
             </div>
           </div>
 
@@ -131,6 +134,26 @@ export default function EmployeeSection({ employees, onEmployeeAdded, showToast 
               </div>
             </div>
 
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                  Initial Password <span className="text-rose-500">*</span>
+                </label>
+                <span className="text-[10px] text-slate-400 font-medium">For employee login</span>
+              </div>
+              <div className="relative">
+                <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                <input
+                  type="text"
+                  placeholder="e.g. password123"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 text-xs bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-slate-800 transition font-mono"
+                  required
+                />
+              </div>
+            </div>
+
             <button
               type="submit"
               disabled={submitting}
@@ -178,7 +201,7 @@ export default function EmployeeSection({ employees, onEmployeeAdded, showToast 
                 {filteredEmployees.length === 0 ? (
                   <tr>
                     <td colSpan="3" className="py-12 text-center text-slate-400">
-                      No employees match your search.
+                      No employees registered yet. Add the first employee using the form.
                     </td>
                   </tr>
                 ) : (

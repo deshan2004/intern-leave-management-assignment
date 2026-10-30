@@ -90,9 +90,13 @@ export default function App() {
     fetchData();
   }, [fetchData]);
 
-  // Ensure non-admins cannot stay on admin tabs
+  // Ensure non-admins and admins stay on their respective authorized tabs
   useEffect(() => {
-    if (currentUser?.role === 'EMPLOYEE') {
+    if (currentUser?.role === 'ADMIN') {
+      if (activeTab === 'apply' || activeTab === 'myleaves') {
+        setActiveTab('admin');
+      }
+    } else if (currentUser?.role === 'EMPLOYEE') {
       if (activeTab === 'admin' || activeTab === 'employees') {
         setActiveTab('apply');
       }
