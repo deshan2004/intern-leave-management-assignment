@@ -181,10 +181,10 @@ export default function App() {
       <footer className="border-t border-slate-200/80 bg-white/70 backdrop-blur-md py-6 mt-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-2">
           <div className="font-medium">
-            Employee Leave Management System &bull; Omibits (Pvt) Ltd. Technical Assessment
+            Employee Leave Management System &bull; Omibits (Pvt) Ltd.
           </div>
           <div className="text-slate-400">
-            Crafted with Spring Boot 3 &amp; React (Vite + Tailwind CSS)
+            &copy; 2026 Omibits. All rights reserved.
           </div>
         </div>
       </footer>

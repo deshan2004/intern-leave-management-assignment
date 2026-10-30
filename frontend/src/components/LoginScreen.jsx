@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CalendarCheck, Shield, Lock, Mail, ArrowRight, AlertCircle, Info } from 'lucide-react';
+import { CalendarCheck, Lock, Mail, ArrowRight, AlertCircle } from 'lucide-react';
 
 export default function LoginScreen({ employees, onLogin, showToast }) {
   const [email, setEmail] = useState('');
@@ -60,9 +60,9 @@ export default function LoginScreen({ employees, onLogin, showToast }) {
         message: `Signed in to employee workspace (${matchedEmployee.department}).`,
       });
     } else {
-      // Email not found in Database!
+      // Email not found in Database
       setErrorMessage(
-        `No employee account found for "${cleanEmail}". Please ensure this employee is registered in the database first.`
+        `Invalid credentials. No active employee account found for "${cleanEmail}".`
       );
     }
 
@@ -108,7 +108,7 @@ export default function LoginScreen({ employees, onLogin, showToast }) {
                     setEmail(e.target.value);
                     if (errorMessage) setErrorMessage('');
                   }}
-                  placeholder="admin@omibits.com or employee@omibits.com"
+                  placeholder="name@omibits.com"
                   className="w-full pl-9 pr-3 py-2.5 text-xs bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none font-medium text-slate-800 transition"
                   required
                 />
@@ -116,12 +116,9 @@ export default function LoginScreen({ employees, onLogin, showToast }) {
             </div>
 
             <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider">
-                  Password
-                </label>
-                <span className="text-[10px] text-slate-400">Default: any password</span>
-              </div>
+              <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                Password
+              </label>
               <div className="relative">
                 <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
                 <input
@@ -147,20 +144,10 @@ export default function LoginScreen({ employees, onLogin, showToast }) {
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </form>
-
-          {/* Info Hint */}
-          <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl text-[11px] text-slate-500 space-y-1">
-            <div className="font-semibold text-slate-700 flex items-center space-x-1">
-              <Info className="w-3.5 h-3.5 text-indigo-500" />
-              <span>Workspace Access Roles:</span>
-            </div>
-            <div>&bull; <strong>Admin:</strong> <code>admin@omibits.com</code> (Full approvals & roster)</div>
-            <div>&bull; <strong>Employees:</strong> Any registered employee email from database.</div>
-          </div>
         </div>
 
         <div className="text-center text-[11px] text-slate-400 font-medium">
-          Omibits (Pvt) Ltd. Technical Assessment &bull; Leave Management Portal
+          &copy; 2026 Omibits (Pvt) Ltd. All rights reserved.
         </div>
       </div>
     </div>

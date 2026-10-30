@@ -77,23 +77,6 @@ export default function AdminDashboard({ leaves, onActionCompleted, showToast })
 
   return (
     <div className="space-y-8 animate-fade-in">
-      {/* Notice Banner */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-200/80 p-4">
-        <div className="flex items-start space-x-3.5">
-          <div className="p-2 bg-amber-100 text-amber-800 rounded-xl flex-shrink-0">
-            <ShieldCheck className="w-5 h-5" />
-          </div>
-          <div>
-            <h4 className="text-xs font-bold text-amber-900 tracking-wide uppercase">
-              Admin Governance Mode
-            </h4>
-            <p className="text-xs text-amber-800/90 mt-0.5 leading-relaxed">
-              Authentication is optional per the 1-day technical evaluation scope. In production environments, these approval workflows are strictly guarded by Spring Security JWT & Role-Based Access Controls (RBAC).
-            </p>
-          </div>
-        </div>
-      </div>
-
       {/* Modern Interactive Metrics Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Total Submissions */}
