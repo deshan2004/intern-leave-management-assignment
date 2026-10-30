@@ -39,7 +39,9 @@ export default function LoginScreen({ onLogin, showToast }) {
     } catch (err) {
       const msg =
         err.response?.data?.message ||
-        'Authentication failed. Invalid email or password.';
+        (!err.response
+          ? 'Cannot connect to backend server. Please verify Spring Boot is running on port 8080.'
+          : 'Authentication failed. Invalid corporate email or password.');
       setErrorMessage(msg);
     } finally {
       setSubmitting(false);
