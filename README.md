@@ -2,7 +2,7 @@
 
 A full-stack, enterprise-grade web application designed for managing employee leave applications and administrative workflows. Built as part of the Software Engineering Intern Technical Assessment for **Omibits (Pvt) Ltd.**
 
-- **Repository:** `intern-leave-management-assignme`
+- **Repository:** `intern-leave-management-assignment`
 - **Candidate:** Deshan Siriwardhana
 - **Role:** Software Engineering Intern
 
@@ -178,8 +178,8 @@ cd backend
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/deshan2004/intern-leave-management-assignme.git
-cd intern-leave-management-assignme
+git clone https://github.com/deshan2004/intern-leave-management-assignment.git
+cd intern-leave-management-assignment
 ```
 
 ### 2. Run Backend (Spring Boot)
