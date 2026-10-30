@@ -1,6 +1,27 @@
 import React, { useState } from 'react';
-import { UserPlus, Users, Mail, Building, Search, Lock, Pencil, Trash2, X, Check, Save } from 'lucide-react';
+import {
+  UserPlus,
+  Users,
+  Mail,
+  Building,
+  Search,
+  Lock,
+  Pencil,
+  Trash2,
+  X,
+  Check,
+  Save,
+  Filter,
+} from 'lucide-react';
 import { employeeService } from '../services/api';
+
+export const DEPARTMENTS = [
+  'Engineering',
+  'Human Resources',
+  'Finance & Operations',
+  'Marketing',
+  'Product Design',
+];
 
 export default function EmployeeSection({ employees, onEmployeeAdded, showToast }) {
   const [name, setName] = useState('');
@@ -8,6 +29,7 @@ export default function EmployeeSection({ employees, onEmployeeAdded, showToast 
   const [department, setDepartment] = useState('Engineering');
   const [password, setPassword] = useState('password123');
   const [search, setSearch] = useState('');
+  const [deptFilter, setDeptFilter] = useState('ALL');
   const [submitting, setSubmitting] = useState(false);
 
   // Edit State
@@ -47,7 +69,7 @@ export default function EmployeeSection({ employees, onEmployeeAdded, showToast 
       showToast({
         type: 'success',
         title: 'Employee Registered!',
-        message: `${name.trim()} was successfully registered with initial password.`,
+        message: `${name.trim()} was successfully registered to ${department}.`,
       });
 
       setName('');
@@ -101,7 +123,7 @@ export default function EmployeeSection({ employees, onEmployeeAdded, showToast 
       setEditingEmployee(null);
       onEmployeeAdded();
     } catch (err) {
-      const msg = err.response?.data?.message || err.response?.data?.details?.[0] || 'Failed to update employee.';
+      const msg = err.response?.data?.message || 'Failed to update employee.';
       showToast({ type: 'error', title: 'Update Failed', message: msg });
     } finally {
       setUpdating(false);
@@ -130,19 +152,30 @@ export default function EmployeeSection({ employees, onEmployeeAdded, showToast 
     }
   };
 
-  const filteredEmployees = employees.filter((emp) =>
-    emp.name.toLowerCase().includes(search.toLowerCase()) ||
-    emp.email.toLowerCase().includes(search.toLowerCase()) ||
-    emp.department.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredEmployees = employees.filter((emp) => {
+    const matchesSearch =
+      emp.name.toLowerCase().includes(search.toLowerCase()) ||
+      emp.email.toLowerCase().includes(search.toLowerCase()) ||
+      emp.department.toLowerCase().includes(search.toLowerCase());
+    const matchesDept = deptFilter === 'ALL' || emp.department === deptFilter;
+    return matchesSearch && matchesDept;
+  });
 
   return (
     <div className="space-y-8 animate-fade-in">
-      <div>
-        <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">Employee Directory</h2>
-        <p className="text-xs text-slate-500 mt-1">
-          Register new personnel, edit records, manage credentials, and oversee the company roster.
-        </p>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div>
+          <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">Employee Directory</h2>
+          <p className="text-xs text-slate-500 mt-1">
+            Register new personnel across all 5 company departments, manage credentials, and oversee the roster.
+          </p>
+        </div>
+
+        {/* 5 Departments Badge Pill */}
+        <div className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-blue-50/80 border border-blue-200/80 rounded-2xl text-[11px] font-bold text-blue-900 shadow-sm">
+          <Building className="w-3.5 h-3.5 text-blue-600" />
+          <span>5 Corporate Departments</span>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -191,21 +224,24 @@ export default function EmployeeSection({ employees, onEmployeeAdded, showToast 
             </div>
 
             <div>
-              <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                Department <span className="text-rose-500">*</span>
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                  Department <span className="text-rose-500">*</span>
+                </label>
+                <span className="text-[10px] text-slate-400 font-medium">Choose 1 of 5</span>
+              </div>
               <div className="relative">
                 <Building className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
                 <select
                   value={department}
                   onChange={(e) => setDepartment(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 text-xs bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-slate-800 transition cursor-pointer"
+                  className="w-full pl-9 pr-3 py-2 text-xs bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-slate-800 transition cursor-pointer font-medium"
                 >
-                  <option value="Engineering">Engineering</option>
-                  <option value="Human Resources">Human Resources</option>
-                  <option value="Finance & Operations">Finance & Operations</option>
-                  <option value="Marketing">Marketing</option>
-                  <option value="Product Design">Product Design</option>
+                  {DEPARTMENTS.map((dept) => (
+                    <option key={dept} value={dept}>
+                      {dept}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -248,19 +284,38 @@ export default function EmployeeSection({ employees, onEmployeeAdded, showToast 
               <Users className="w-5 h-5 text-blue-600" />
               <h3 className="font-bold text-sm text-slate-900">Registered Personnel</h3>
               <span className="bg-slate-100 text-slate-700 text-[11px] px-2.5 py-0.5 rounded-full font-bold">
-                {employees.length}
+                {filteredEmployees.length} of {employees.length}
               </span>
             </div>
 
-            <div className="relative w-full sm:w-64">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
-              <input
-                type="text"
-                placeholder="Filter by name or department..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-9 pr-3 py-1.5 text-xs bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
-              />
+            <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+              {/* Department Filter */}
+              <div className="relative w-full sm:w-44">
+                <select
+                  value={deptFilter}
+                  onChange={(e) => setDeptFilter(e.target.value)}
+                  className="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-slate-700 font-medium cursor-pointer"
+                >
+                  <option value="ALL">All Departments</option>
+                  {DEPARTMENTS.map((dept) => (
+                    <option key={dept} value={dept}>
+                      {dept}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Text Search */}
+              <div className="relative w-full sm:w-48">
+                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2" />
+                <input
+                  type="text"
+                  placeholder="Search name/email..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full pl-9 pr-3 py-1.5 text-xs bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+              </div>
             </div>
           </div>
 
@@ -278,7 +333,7 @@ export default function EmployeeSection({ employees, onEmployeeAdded, showToast 
                 {filteredEmployees.length === 0 ? (
                   <tr>
                     <td colSpan="4" className="py-12 text-center text-slate-400">
-                      No employees registered yet. Add the first employee using the form.
+                      No employees match the selected criteria.
                     </td>
                   </tr>
                 ) : (
@@ -389,13 +444,13 @@ export default function EmployeeSection({ employees, onEmployeeAdded, showToast 
                 <select
                   value={editDepartment}
                   onChange={(e) => setEditDepartment(e.target.value)}
-                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none text-slate-800 transition cursor-pointer"
+                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none text-slate-800 transition cursor-pointer font-medium"
                 >
-                  <option value="Engineering">Engineering</option>
-                  <option value="Human Resources">Human Resources</option>
-                  <option value="Finance & Operations">Finance & Operations</option>
-                  <option value="Marketing">Marketing</option>
-                  <option value="Product Design">Product Design</option>
+                  {DEPARTMENTS.map((dept) => (
+                    <option key={dept} value={dept}>
+                      {dept}
+                    </option>
+                  ))}
                 </select>
               </div>
 

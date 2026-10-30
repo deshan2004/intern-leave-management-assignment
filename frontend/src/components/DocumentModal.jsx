@@ -139,3 +139,4 @@ export default function DocumentModal({ isOpen, onClose, leaveRequest, onApprove
     </div>
   );
 }
+

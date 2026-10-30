@@ -160,6 +160,8 @@ export default function App() {
 
             {(activeTab === 'apply' || activeTab === 'myleaves') && (
               <LeaveApplicationSection
+                activeTab={activeTab}
+                setActiveTab={setActiveTab}
                 employees={employees}
                 leaves={leaves}
                 onLeaveSubmitted={fetchData}

@@ -105,11 +105,11 @@ export default function Navbar({ activeTab, setActiveTab, pendingCount, currentU
 
             <button
               onClick={onLogout}
-              title="Switch user or log out"
-              className="flex items-center space-x-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-600 hover:text-rose-700 hover:bg-rose-50 border border-slate-200/80 hover:border-rose-200 transition-all duration-150 active:scale-95"
+              title="Sign out of system"
+              className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-rose-700 bg-rose-50/70 hover:bg-rose-100/80 border border-rose-200 transition-all duration-150 active:scale-95 shadow-sm"
             >
-              <LogOut className="w-3.5 h-3.5" />
-              <span className="hidden md:inline">Switch</span>
+              <LogOut className="w-3.5 h-3.5 text-rose-600" />
+              <span>Sign Out</span>
             </button>
           </div>
         </div>
