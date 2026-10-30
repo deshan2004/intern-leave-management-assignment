@@ -1,14 +1,23 @@
-import React, { useState } from 'react';
-import { Calendar, Clock, CheckCircle, AlertCircle, FileText, Send, User, Sparkles, ArrowRight } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Calendar, Clock, CheckCircle, AlertCircle, FileText, Send, User, Sparkles, ArrowRight, UserCheck } from 'lucide-react';
 import { leaveService } from '../services/api';
 
-export default function LeaveApplicationSection({ employees, leaves, onLeaveSubmitted, showToast }) {
-  const [employeeId, setEmployeeId] = useState('');
+export default function LeaveApplicationSection({ employees, leaves, onLeaveSubmitted, showToast, currentUser }) {
+  const isEmployee = currentUser?.role === 'EMPLOYEE';
+  const [employeeId, setEmployeeId] = useState(
+    isEmployee && currentUser?.id ? String(currentUser.id) : ''
+  );
   const [leaveType, setLeaveType] = useState('ANNUAL');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [reason, setReason] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (isEmployee && currentUser?.id) {
+      setEmployeeId(String(currentUser.id));
+    }
+  }, [isEmployee, currentUser]);
 
   // Compute duration in days if valid
   const calculateDays = () => {
@@ -25,7 +34,9 @@ export default function LeaveApplicationSection({ employees, leaves, onLeaveSubm
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!employeeId) {
+    const targetEmployeeId = isEmployee ? currentUser.id : employeeId;
+
+    if (!targetEmployeeId) {
       showToast({ type: 'error', title: 'Missing Field', message: 'Please select an employee.' });
       return;
     }
@@ -45,7 +56,7 @@ export default function LeaveApplicationSection({ employees, leaves, onLeaveSubm
     try {
       setSubmitting(true);
       await leaveService.submit({
-        employeeId: Number(employeeId),
+        employeeId: Number(targetEmployeeId),
         leaveType,
         startDate,
         endDate,
@@ -71,12 +82,20 @@ export default function LeaveApplicationSection({ employees, leaves, onLeaveSubm
     }
   };
 
+  const displayedLeaves = isEmployee
+    ? leaves.filter((l) => l.employeeId === currentUser?.id || l.employeeEmail === currentUser?.email)
+    : leaves;
+
   return (
     <div className="space-y-8 animate-fade-in">
       <div>
-        <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">Apply for Leave</h2>
+        <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+          {isEmployee ? 'Submit Leave Application' : 'Apply for Leave'}
+        </h2>
         <p className="text-xs text-slate-500 mt-1">
-          Submit your leave requests for administrator review and track their approval status.
+          {isEmployee
+            ? `Logged in as ${currentUser?.name}. Track your personal submissions below.`
+            : 'Submit leave requests for employees and review live submission history.'}
         </p>
       </div>
 
@@ -88,32 +107,56 @@ export default function LeaveApplicationSection({ employees, leaves, onLeaveSubm
               <Send className="w-4 h-4 text-indigo-600" />
             </div>
             <div>
-              <h3 className="font-bold text-sm text-slate-900">Leave Application</h3>
-              <p className="text-[11px] text-slate-400 font-medium">Fill in all required fields</p>
+              <h3 className="font-bold text-sm text-slate-900">Leave Application Form</h3>
+              <p className="text-[11px] text-slate-400 font-medium">
+                {isEmployee ? 'Personal Leave Request' : 'Admin Submissions'}
+              </p>
             </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                Select Employee <span className="text-rose-500">*</span>
+                Applicant / Employee <span className="text-rose-500">*</span>
               </label>
-              <div className="relative">
-                <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
-                <select
-                  value={employeeId}
-                  onChange={(e) => setEmployeeId(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2.5 text-xs bg-white/90 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 font-medium text-slate-800 transition outline-none"
-                  required
-                >
-                  <option value="">-- Choose Employee --</option>
-                  {employees.map((emp) => (
-                    <option key={emp.id} value={emp.id}>
-                      {emp.name} &bull; {emp.department}
-                    </option>
-                  ))}
-                </select>
-              </div>
+
+              {isEmployee ? (
+                /* Locked Profile Badge for Logged-in Employee */
+                <div className="p-3 bg-gradient-to-r from-indigo-50/90 to-blue-50/70 border border-indigo-200/80 rounded-xl flex items-center justify-between">
+                  <div className="flex items-center space-x-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-bold text-xs shadow-sm">
+                      {currentUser?.name?.split(' ').map((n) => n[0]).join('').slice(0, 2) || 'E'}
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-slate-900">{currentUser?.name}</div>
+                      <div className="text-[10px] text-slate-500 font-medium">
+                        {currentUser?.department} &bull; {currentUser?.email}
+                      </div>
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800">
+                    Logged In
+                  </span>
+                </div>
+              ) : (
+                /* Select Dropdown for Admin */
+                <div className="relative">
+                  <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                  <select
+                    value={employeeId}
+                    onChange={(e) => setEmployeeId(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2.5 text-xs bg-white/90 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 font-medium text-slate-800 transition outline-none"
+                    required
+                  >
+                    <option value="">-- Choose Employee --</option>
+                    {employees.map((emp) => (
+                      <option key={emp.id} value={emp.id}>
+                        {emp.name} &bull; {emp.department}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
 
             <div>
@@ -233,9 +276,11 @@ export default function LeaveApplicationSection({ employees, leaves, onLeaveSubm
           <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-100">
             <div className="flex items-center space-x-2 text-slate-800">
               <Calendar className="w-5 h-5 text-indigo-600" />
-              <h3 className="font-bold text-sm text-slate-900">Submitted Leave History</h3>
+              <h3 className="font-bold text-sm text-slate-900">
+                {isEmployee ? 'My Submissions' : 'Submitted Leave History'}
+              </h3>
               <span className="bg-slate-100 text-slate-700 text-[11px] px-2.5 py-0.5 rounded-full font-bold">
-                {leaves.length} records
+                {displayedLeaves.length} records
               </span>
             </div>
           </div>
@@ -247,19 +292,21 @@ export default function LeaveApplicationSection({ employees, leaves, onLeaveSubm
                   <th className="py-3 px-3">Employee</th>
                   <th className="py-3 px-3">Type</th>
                   <th className="py-3 px-3">Duration</th>
-                  <th className="py-3 px-3">Reason</th>
+                  <th className="py-3 px-3">Reason & Notes</th>
                   <th className="py-3 px-3">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-700">
-                {leaves.length === 0 ? (
+                {displayedLeaves.length === 0 ? (
                   <tr>
                     <td colSpan="5" className="py-12 text-center text-slate-400">
-                      No leave requests submitted yet.
+                      {isEmployee
+                        ? "You haven't submitted any leave requests yet."
+                        : 'No leave requests submitted yet.'}
                     </td>
                   </tr>
                 ) : (
-                  leaves.map((item) => (
+                  displayedLeaves.map((item) => (
                     <tr key={item.id} className="hover:bg-slate-50/60 transition-colors">
                       <td className="py-3.5 px-3">
                         <div className="font-semibold text-slate-900">{item.employeeName}</div>
@@ -277,8 +324,13 @@ export default function LeaveApplicationSection({ employees, leaves, onLeaveSubm
                           <span>{item.endDate}</span>
                         </div>
                       </td>
-                      <td className="py-3.5 px-3 text-xs text-slate-500 max-w-xs truncate">
-                        {item.reason || <span className="text-slate-300 italic">—</span>}
+                      <td className="py-3.5 px-3 text-xs text-slate-500 max-w-xs">
+                        <div className="truncate">{item.reason || <span className="text-slate-300 italic">—</span>}</div>
+                        {item.rejectionReason && (
+                          <div className="mt-1 text-[11px] text-rose-600 bg-rose-50 px-2 py-1 rounded border border-rose-100">
+                            <strong>Note:</strong> {item.rejectionReason}
+                          </div>
+                        )}
                       </td>
                       <td className="py-3.5 px-3">
                         <StatusBadge status={item.status} />

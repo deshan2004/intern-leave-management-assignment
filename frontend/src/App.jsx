@@ -3,21 +3,30 @@ import Navbar from './components/Navbar';
 import AdminDashboard from './components/AdminDashboard';
 import LeaveApplicationSection from './components/LeaveApplicationSection';
 import EmployeeSection from './components/EmployeeSection';
+import LoginScreen from './components/LoginScreen';
 import Toast from './components/Toast';
 import { employeeService, leaveService } from './services/api';
 import { Loader2, RefreshCw } from 'lucide-react';
 
 export default function App() {
-  const getInitialTab = () => {
-    const params = new URLSearchParams(window.location.search);
-    const tabParam = params.get('tab');
-    if (tabParam && ['admin', 'apply', 'employees'].includes(tabParam)) {
-      return tabParam;
-    }
-    return 'admin';
+  const getStoredUser = () => {
+    try {
+      const saved = localStorage.getItem('leave_portal_user');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return null;
   };
 
-  const [activeTab, setActiveTabState] = useState(getInitialTab);
+  const [currentUser, setCurrentUser] = useState(getStoredUser);
+  const [activeTab, setActiveTabState] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tabParam = params.get('tab');
+    if (tabParam && ['admin', 'apply', 'employees', 'myleaves'].includes(tabParam)) {
+      return tabParam;
+    }
+    return currentUser?.role === 'EMPLOYEE' ? 'apply' : 'admin';
+  });
+
   const [employees, setEmployees] = useState([]);
   const [leaves, setLeaves] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -37,6 +46,26 @@ export default function App() {
     const url = new URL(window.location.href);
     url.searchParams.set('tab', tab);
     window.history.pushState({}, '', url);
+  };
+
+  const handleLogin = (user) => {
+    setCurrentUser(user);
+    try {
+      localStorage.setItem('leave_portal_user', JSON.stringify(user));
+    } catch (e) {}
+    setActiveTab(user.role === 'ADMIN' ? 'admin' : 'apply');
+  };
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+    try {
+      localStorage.removeItem('leave_portal_user');
+    } catch (e) {}
+    showToast({
+      type: 'info',
+      title: 'Signed Out',
+      message: 'Session closed. Select a role or log in again to continue.',
+    });
   };
 
   const fetchData = useCallback(async () => {
@@ -61,7 +90,30 @@ export default function App() {
     fetchData();
   }, [fetchData]);
 
+  // Ensure non-admins cannot stay on admin tabs
+  useEffect(() => {
+    if (currentUser?.role === 'EMPLOYEE') {
+      if (activeTab === 'admin' || activeTab === 'employees') {
+        setActiveTab('apply');
+      }
+    }
+  }, [currentUser, activeTab]);
+
   const pendingCount = leaves.filter((l) => l.status === 'PENDING').length;
+
+  // If user is not signed in, show the sleek Login & Role Selection view
+  if (!currentUser) {
+    return (
+      <div className="min-h-screen bg-slate-50">
+        <LoginScreen
+          employees={employees}
+          onLogin={handleLogin}
+          showToast={showToast}
+        />
+        <Toast toast={toast} onClose={closeToast} />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
@@ -69,6 +121,8 @@ export default function App() {
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         pendingCount={pendingCount}
+        currentUser={currentUser}
+        onLogout={handleLogout}
       />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -92,7 +146,7 @@ export default function App() {
           </div>
         ) : (
           <>
-            {activeTab === 'admin' && (
+            {activeTab === 'admin' && currentUser.role === 'ADMIN' && (
               <AdminDashboard
                 leaves={leaves}
                 onActionCompleted={fetchData}
@@ -100,16 +154,17 @@ export default function App() {
               />
             )}
 
-            {activeTab === 'apply' && (
+            {(activeTab === 'apply' || activeTab === 'myleaves') && (
               <LeaveApplicationSection
                 employees={employees}
                 leaves={leaves}
                 onLeaveSubmitted={fetchData}
                 showToast={showToast}
+                currentUser={currentUser}
               />
             )}
 
-            {activeTab === 'employees' && (
+            {activeTab === 'employees' && currentUser.role === 'ADMIN' && (
               <EmployeeSection
                 employees={employees}
                 onEmployeeAdded={fetchData}
